@@ -10,7 +10,6 @@ export async function resetPasswordService(input: ResetPasswordInput) {
   const passwordReset = await prisma.passwordReset.findFirst({
     where: {
       token: hashedToken,
-      used: false,
       expiresAt: { gt: new Date() },
     },
   });
@@ -26,9 +25,8 @@ export async function resetPasswordService(input: ResetPasswordInput) {
       where: { id: passwordReset.userId },
       data: { password: hashedPassword },
     }),
-    prisma.passwordReset.update({
+    prisma.passwordReset.delete({
       where: { id: passwordReset.id },
-      data: { used: true },
     }),
   ]);
 }

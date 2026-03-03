@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { prisma } from '../../config/prisma';
 import { ForgotPasswordInput } from '../../schemas/auth.schema';
+import { sendPasswordResetEmail } from '../../utils/email';
 
 export async function forgotPasswordService(input: ForgotPasswordInput) {
   const user = await prisma.user.findUnique({
@@ -10,10 +11,9 @@ export async function forgotPasswordService(input: ForgotPasswordInput) {
   // Always return silently to prevent email enumeration
   if (!user) return;
 
-  // Invalidate any existing unused reset tokens
-  await prisma.passwordReset.updateMany({
-    where: { userId: user.id, used: false },
-    data: { used: true },
+  // Delete any existing reset tokens for this user
+  await prisma.passwordReset.deleteMany({
+    where: { userId: user.id },
   });
 
   const rawToken = crypto.randomBytes(32).toString('hex');
@@ -27,8 +27,5 @@ export async function forgotPasswordService(input: ForgotPasswordInput) {
     },
   });
 
-  // TODO: In production, send rawToken via email instead of logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[DEV] Password reset token for ${input.email}: ${rawToken}`);
-  }
+  await sendPasswordResetEmail(user.email, rawToken);
 }

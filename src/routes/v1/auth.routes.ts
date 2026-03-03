@@ -4,6 +4,7 @@ import { registerController } from '../../controllers/auth/register.controller';
 import { forgotPasswordController } from '../../controllers/auth/forgot-password.controller';
 import { resetPasswordController } from '../../controllers/auth/reset-password.controller';
 import { changePasswordController } from '../../controllers/auth/change-password.controller';
+import { meController } from '../../controllers/auth/me.controller';
 import { authenticate } from '../../middleware/auth';
 
 const router = Router();
@@ -13,5 +14,6 @@ router.post('/login', loginController);
 router.post('/forgot-password', forgotPasswordController);
 router.post('/reset-password', resetPasswordController);
 router.post('/change-password', authenticate, changePasswordController);
+router.get('/me', authenticate, meController);
 
 export { router as authRouter };
